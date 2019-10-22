@@ -24,7 +24,6 @@ class App extends React.Component {
   }
 
   render() {
-    const postcodeRegex = new RegExp(/^[1-9][0-9]{3}[\s]?[A-Za-z]{2}$/i);
     return (
       <Wrapper>
         <GlobalStyle />
@@ -36,7 +35,7 @@ class App extends React.Component {
             <Textfield
               type="text"
               name="voorletters"
-              placeholder="J."
+              placeholder="J"
               required
             />
             <Textfield
@@ -55,9 +54,11 @@ class App extends React.Component {
           <h2>Adres</h2>
           <Entree>
             <Textfield
+              type="text"
               name="postcode"
               placeholder="0000AA"
-              pattern={{ matchRegexp: postcodeRegex }}
+              pattern="[1-9][0-9]{3}[\s]?[A-Za-z]{2}"
+              onInvalid={event => event.target.setCustomValidity('Please fill in a valid postcode')}
               required
             />
           </Entree>
@@ -102,8 +103,7 @@ class App extends React.Component {
   }
 
   onSubmit() {
-    this.form.current.reportValidity();
-    console.log(this.state);
+    if (this.form.current.reportValidity()) console.log(this.state);
   }
 
 }
