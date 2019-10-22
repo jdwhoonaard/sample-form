@@ -19,11 +19,14 @@ class App extends React.Component {
     }
 
     this.form = React.createRef();
+    this.handleChange = this.handleChange.bind(this);
+    this.fetchAdress = this.fetchAdress.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
 
   }
 
   render() {
+    console.log(this.state)
     return (
       <Wrapper>
         <GlobalStyle />
@@ -36,17 +39,20 @@ class App extends React.Component {
               type="text"
               name="voorletters"
               placeholder="J"
+              onChange={this.handleChange}
               required
             />
             <Textfield
               type="text"
               name="tussenvoegsel"
               placeholder="de"
+              onChange={this.handleChange}
             />
             <Textfield
               type="text"
               name="achternaam"
               placeholder="Vries"
+              onChange={this.handleChange}
               required
             />
           </Entree>
@@ -59,6 +65,7 @@ class App extends React.Component {
               placeholder="0000AA"
               pattern="[1-9][0-9]{3}[\s]?[A-Za-z]{2}"
               onInvalid={event => event.target.setCustomValidity('Please fill in a valid postcode')}
+              onChange={this.handleChange}
               required
             />
           </Entree>
@@ -68,12 +75,15 @@ class App extends React.Component {
               type="text"
               name="straat"
               placeholder="Pepperonilaan"
+              value={this.state.formData.straatnaam}
+              onChange={this.handleChange}
               required
             />
             <Textfield
               type="text"
               name="huisnummer"
               placeholder="3"
+              onChange={this.handleChange}
               required
             />
           </Entree>
@@ -82,6 +92,8 @@ class App extends React.Component {
               type="text"
               name="stad"
               placeholder="Bielefeld"
+              value={this.state.formData.stad}
+              onChange={this.handleChange}
               required
             />
           </Entree>
@@ -92,6 +104,9 @@ class App extends React.Component {
               type="email"
               name="email"
               placeholder="jan@voorbeeld.nl"
+              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+              onInvalid={event => event.target.setCustomValidity('Please fill in a valid email')}
+              onChange={this.handleChange}
               required
             />
           </Entree>
@@ -102,8 +117,40 @@ class App extends React.Component {
     );
   }
 
+  handleChange = (event) => {
+    event.preventDefault();
+
+    const name = event.target.name
+    const value = event.target.value
+
+    this.setState(prevState => ({
+      formData: {
+        ...prevState.formData,
+        [name]: value,
+      }
+    }))
+
+    if (event.target.name === 'postcode') this.fetchAdress(value)
+  }
+
+  async fetchAdress(postcode) {
+    if (RegExp(/^[1-9][0-9]{3}[\s]?[A-Za-z]{2}$/i).test(postcode)) {
+      const response = await fetch(`http://photon.komoot.de/api/?q=${postcode}&limit=1`)
+        .then(response => response.json())
+        .then(data => data = data.features[0].properties);
+
+      this.setState(prevState => ({
+        formData: {
+          ...prevState.formData,
+          straatnaam: response.name,
+          stad: response.city,
+        }
+      }));
+    }
+  }
+
   onSubmit() {
-    if (this.form.current.reportValidity()) console.log(this.state);
+    if (this.form.current.reportValidity()) console.log('submit: ', this.state);
   }
 
 }
@@ -158,6 +205,10 @@ const Textfield = styled.input`
   border: 0px solid;
   box-sizing: border-box;
   border-bottom: 0.5px solid black;
+
+  &:valid {
+    border-bottom: 0.5px solid green;
+  }
 `;
 
 const SubmitButton = styled.input`
