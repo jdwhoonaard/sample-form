@@ -1,11 +1,14 @@
 import React from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 
+import logo from './loading.svg';
+
 class App extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
+      fetchingData: false,
       formData: {
         voorletters: undefined,
         tussenvoegsel: undefined,
@@ -34,7 +37,7 @@ class App extends React.Component {
         <form ref={this.form} onSubmit={e => e.preventDefault()}>
 
           <h2>Naam</h2>
-          <Entree>
+          <Row>
             <Textfield
               type="text"
               name="voorletters"
@@ -55,10 +58,10 @@ class App extends React.Component {
               onChange={this.handleChange}
               required
             />
-          </Entree>
+          </Row>
 
           <h2>Adres</h2>
-          <Entree>
+          <Row>
             <Textfield
               type="text"
               name="postcode"
@@ -68,9 +71,18 @@ class App extends React.Component {
               onChange={this.handleChange}
               required
             />
-          </Entree>
-
-          <Entree>
+          </Row>
+          {
+            this.state.fetchingData
+              ? (
+                <LoaderWrapper>
+                  <img alt="loader" src={logo} height="12px" />
+                  <p>fetching adress information</p>
+                </LoaderWrapper>
+              )
+              : null
+          }
+          <Row>
             <Textfield
               type="text"
               name="straat"
@@ -86,8 +98,8 @@ class App extends React.Component {
               onChange={this.handleChange}
               required
             />
-          </Entree>
-          <Entree>
+          </Row>
+          <Row>
             <Textfield
               type="text"
               name="stad"
@@ -96,10 +108,10 @@ class App extends React.Component {
               onChange={this.handleChange}
               required
             />
-          </Entree>
+          </Row>
 
           <h2>Email</h2>
-          <Entree>
+          <Row>
             <Textfield
               type="email"
               name="email"
@@ -109,9 +121,11 @@ class App extends React.Component {
               onChange={this.handleChange}
               required
             />
-          </Entree>
+          </Row>
 
-          <SubmitButton type="submit" value="Submit" onClick={this.onSubmit} />
+          <Row>
+            <SubmitButton type="submit" value="Submit" onClick={this.onSubmit} />
+          </Row>
         </form>
       </Wrapper>
     );
@@ -135,11 +149,13 @@ class App extends React.Component {
 
   async fetchAdress(postcode) {
     if (RegExp(/^[1-9][0-9]{3}[\s]?[A-Za-z]{2}$/i).test(postcode)) {
+      this.setState({ fetchingData: true });
       const response = await fetch(`http://photon.komoot.de/api/?q=${postcode}&limit=1`)
         .then(response => response.json())
         .then(data => data = data.features[0].properties);
 
       this.setState(prevState => ({
+        fetchingData: false,
         formData: {
           ...prevState.formData,
           straatnaam: response.name,
@@ -149,8 +165,12 @@ class App extends React.Component {
     }
   }
 
-  onSubmit() {
-    if (this.form.current.reportValidity()) console.log('submit: ', this.state);
+  async onSubmit() {
+    if (this.form.current.reportValidity()) {
+      window.open("https://giphy.com/gifs/the-coen-brothers-joel-burn-after-reading-6G5z8Ginz6oRG");
+
+      // do other stuff
+    }
   }
 
 }
@@ -169,32 +189,45 @@ html {
 }
 
 h1 {
-  font-size: 3em;
+  font-size: 24px;
   font-weight: 700;
+  padding-bottom: 16px;
 }
 
 h2 {
-  font-size: 1em;
+  font-size: 16px;
   font-weight: 700;
-  padding-top: 1.5em;
+  padding-top: 32px;
 }
 
 p {
-  font-size: 1em;
+  font-size: 0.8em;
   font-weight: 400;
 }
 `
 
 const Wrapper = styled.div`
-  margin: 0 auto;
+  margin: 4em auto;
   padding: 1em;
   max-width: 640px;
 `;
 
-const Entree = styled.div`
+const LoaderWrapper = styled.div`
+  margin: 0 auto;
+  padding: 0.25em;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
+
+const Row = styled.div`
   display: flex;
   flex-direction: row;
   padding: 0.25em 0;
+  justify-content: center;
+  align-items: center;
 `;
 
 const Textfield = styled.input`
@@ -204,18 +237,26 @@ const Textfield = styled.input`
   background-color: transparent;
   border: 0px solid;
   box-sizing: border-box;
-  border-bottom: 0.5px solid black;
+  border-bottom: 1.5px solid rgba(0,0,0,0.4);
+  outline: none;
 
   &:valid {
-    border-bottom: 0.5px solid green;
+    border-bottom: 1.5px solid green;
   }
 `;
 
 const SubmitButton = styled.input`
-  padding: 1em;
-  border: 1px solid black;
+  margin: 48px 0 0 0;
+  padding: 1.2em;
+  border-radius: 2px;
+  border: 1.5px solid rgba(0,0,0,0.4);
   background-color: transparant;
-  text-color: black;
+  text-color: rgba(0,0,0,0.4);
+  font-size: 0.7em;
   font-weight: 700;
-  float: right;
+
+  &:hover {
+    border: 1.5px solid green;
+    color: green;
+  }
 `;
